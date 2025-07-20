@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/rgbmermaidcrop"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/labelID"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="UID:"
+            android:textColor="#fff"
+            android:textSize="25sp"
+            android:gravity="center"
+            android:background="@drawable/layout_label_id"
+            android:padding="10dp" />
+
+        <TextView
+            android:id="@+id/textID"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            android:textColor="#fff"
+            android:gravity="center"
+            android:background="@drawable/layout_text_id"
+            android:padding="10dp" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/uidInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter new UID (hex only)"
+        android:inputType="text"
+        android:digits="0123456789ABCDEFabcdef"
+        android:visibility="gone"
+        android:textColor="#FFFF00"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/modifyButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Modify" />
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/generateButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Generate Random ID" />
+
+    <Button
+        android:id="@+id/scanButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Scan" />
+
+    <TextView
+        android:id="@+id/debugText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#FF0000"
+        android:background="#33000000"
+        android:padding="8dp"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

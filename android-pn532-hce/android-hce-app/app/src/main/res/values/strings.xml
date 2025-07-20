@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Mermaid Sesame</string>
+    <string name="servicedesc" translatable="false">Description</string>
+    <string name="aiddescription" translatable="false">AID Description</string>
+    <string name="id_label" translatable="false">ID:</string>
+    <string name="nfc_disabled">NFC is disabled. Do you want to enable it?</string>
+    <string name="dialog_yes">Yes</string>
+    <string name="dialog_no">No</string>
+    <string name="nfc_unsupported">Device does not support NFC? :-(</string>
+    <string name="nfc_permission_required">NFC permission is required for this app to function. Please allow NFC access in your device settings.</string>
+</resources>
