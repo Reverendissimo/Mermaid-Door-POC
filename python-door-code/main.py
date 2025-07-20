@@ -268,23 +268,25 @@ class Nfc:
             print('No NFC reader (PN532) detected')
             raise
 
-        # Set your AID here (must match the Android app)
-        ANDROID_AID = "F222222222"  # Example, replace with your app's AID (hex string, no spaces)
+        # Standard AID for the Android app (must match the app's AID)
+        ANDROID_AID = "A0000001020304"  # This is the default in the Android app
 
         while True:
-            uid = None
             try:
-                # Try standard card first
+                # 1. Wait for any card (phone or physical)
                 uid = rf.read_passive_target()
                 if uid is not None:
-                    self._uids.append(("mifare", uid))
-                    self._flag.set()
-                else:
-                    # Try Android HCE
-                    hce_uid = rf.read_hce_uid(AID=ANDROID_AID)
+                    # 2. Always try SELECT AID APDU after card detection
+                    #    If the app responds (returns a UID), use that UID for authentication.
+                    #    If not, use the hardware UID from the card.
+                    hce_uid = rf.read_hce_uid(aid_hex=ANDROID_AID)
                     if hce_uid:
+                        # Android app responded: use the UID returned by the app
                         self._uids.append(("android", hce_uid))
-                        self._flag.set()
+                    else:
+                        # No app response: use the hardware UID from the card
+                        self._uids.append(("mifare", uid))
+                    self._flag.set()
             except PN532Error as e:
                 print('PN532:', e)
 

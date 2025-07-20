@@ -45,14 +45,12 @@ class HostCardEmulatorService: HostApduService() {
             return ByteArrayHexUtil.hexStringToByteArray(INS_NOT_SUPPORTED)
         }
 
+        // If the SELECT AID APDU is for our standard AID, respond with the user-selected UID
+        // This UID is used for authentication by the door controller
         if (hexCommandApdu.substring(10, 24) == AID) {
-            // we wont return success 90 00, we respond with our uid
-            // return ByteArrayHexUtil.hexStringToByteArray(STATUS_SUCCESS)
-
             val dataStore = DataStoreUtil(this);
             val uid = dataStore.getID();
             return ByteArrayHexUtil.hexStringToByteArray(uid)
-
         } else {
             return ByteArrayHexUtil.hexStringToByteArray(STATUS_FAILED)
         }

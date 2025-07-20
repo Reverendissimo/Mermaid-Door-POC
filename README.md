@@ -2,64 +2,118 @@
 
 ## Overview
 
-This project provides a complete NFC-based access control solution, consisting of:
-- **Mermaid Sesame Android App**: For managing, generating, and scanning NFC UIDs.
-- **Python Door Controller**: For authenticating NFC cards and controlling a physical door lock using a PN532 NFC reader.
+This project provides a complete NFC-based access control solution with **dual authentication support**:
+- **Mermaid Sesame Android App**: Host Card Emulation (HCE) app that emulates an NFC card
+- **Python Door Controller**: Authenticates both physical NFC cards and Android HCE devices using a PN532 NFC reader
+
+---
+
+## Dual Authentication System
+
+### Supported Devices
+1. **Physical NFC Cards** (Mifare/NTAG/ISO14443-3A): Standard NFC cards and tags
+2. **Android HCE Devices**: Phones running the Mermaid Sesame app that emulate NFC cards
+
+### Authentication Logic
+The door controller uses a **two-step detection process**:
+1. **Detect any card** (phone or physical) using standard NFC polling
+2. **Send SELECT AID APDU** to check if it's an Android HCE device
+   - **If AID responds**: Use the UID returned by the Android app
+   - **If no AID response**: Use the hardware UID from the physical card
+
+This ensures reliable distinction between phones and cards, even when phones present random hardware UIDs.
 
 ---
 
 ## Android App: Mermaid Sesame
 
 ### Features
-- **Scan NFC Cards**: Reads the UID from any NFC card/tag and displays it in the format expected by the door controller (first 4 bytes reversed, hex string).
-- **Modify UID**: Allows manual entry of a UID (hex only). The app always stores the normal UID, but displays the Python-style (reversed) UID.
-- **Generate Random UID**: Instantly generates a random 12-character hex UID, stores it, and displays the Python-style UID.
-- **Copy UID**: The displayed UID can be copied and used directly in the door controller system.
-- **Debug Output**: Shows step-by-step debug information for NFC operations.
-- **Modern UI**: Responsive, autoscaling layout with a custom background.
+- **Host Card Emulation (HCE)**: Emulates an NFC card that responds to SELECT AID commands
+- **UID Management**: Generate, modify, and store custom UIDs for door access
+- **Scan Physical Cards**: Read UIDs from physical NFC cards for registration
+- **Modern UI**: Responsive design with custom background and intuitive controls
+- **Debug Output**: Real-time feedback for NFC operations
 
 ### UID Handling
-- **Storage**: The app always stores the UID in its normal (non-reversed) form.
-- **Display**: The app always displays the UID in the Python-compatible format (first 4 bytes reversed, as required by the door controller's hash logic).
-- **Consistency**: Whether you scan, generate, or modify a UID, the app ensures the correct format is shown for use with the Python system.
+- **Storage**: Always stores UIDs in normal (non-reversed) hex format
+- **Display**: Shows UIDs in Python-compatible format (first 4 bytes reversed)
+- **AID Response**: When the door controller sends SELECT AID `"A0000001020304"`, the app responds with the user's selected UID
 
 ### How to Use
-1. **Scan**: Tap "Scan" and present a card. The UID will be shown in the correct format.
-2. **Modify**: Tap "Modify" to enter a custom UID (hex only). Save to update.
-3. **Generate Random ID**: Tap to create a new random UID.
-4. **Copy UID**: Use the displayed UID for registration or testing with the door controller.
+1. **Generate Random UID**: Tap to create a new random 12-character hex UID
+2. **Modify UID**: Enter a custom UID (hex only) for specific access control
+3. **Scan Physical Card**: Read UIDs from existing NFC cards for registration
+4. **Use for Authentication**: The displayed UID is what the door controller will use
 
 ---
 
 ## Python Door Controller
 
-- Located in the `python-door-code` directory.
-- Uses a PN532 NFC reader to detect cards and read their UIDs.
-- When a card is detected, the UID is reversed (first 4 bytes) and used in a hash with a PIN for authentication.
-- The hash is checked against a list of valid hashes to grant or deny access.
+Located in `python-door-code/`, the controller provides:
+- **Dual NFC Support**: Handles both physical cards and Android HCE devices
+- **PIN Authentication**: Optional PIN entry for two-factor security
+- **MQTT Integration**: Event logging and system integration
+- **Configurable AID**: Easy AID customization for different app versions
 
-### Integration Details
-- **UID Format**: The Android app displays the UID in the exact format the Python code expects for hashing and authentication.
-- **Workflow**:
-    - Scan a card with the app, or generate/enter a UID.
-    - Register the UID (as displayed in the app) in the door controller's hash list (with the correct PIN).
-    - When the card is presented to the door controller, the UID will match and authentication will succeed.
+### Authentication Flow
+1. **Card Detection**: PN532 detects any NFC device (phone or card)
+2. **AID Check**: Sends SELECT AID APDU to check for Android HCE
+3. **UID Extraction**: 
+   - Android HCE: Uses UID returned by app response
+   - Physical Card: Uses hardware UID from card
+4. **Authentication**: Validates UID + PIN hash against authorized list
+5. **Access Control**: Grants/denies door access based on authentication
+
+### Configuration
+- **AID**: `"A0000001020304"` (matches Android app registration)
+- **UID Format**: 12-character hex strings for Android, variable length for physical cards
+- **PIN Security**: Optional PIN requirement for enhanced security
 
 ---
 
 ## Repository Structure
 
-- `android-pn532-hce/` — Android app source code (Mermaid Sesame)
-- `python-door-code/` — Python door controller code
-- `RGBmermaidCROP.png` — App background image
-- `.gitignore` — Excludes build artifacts, APKs, and other non-source files
+```
+Mermaid-sesame/
+├── android-pn532-hce/          # Android HCE app source
+│   └── android-hce-app/        # Main app code
+├── python-door-code/           # Python door controller
+│   ├── main.py                 # Main door control logic
+│   ├── pn532.py               # NFC communication
+│   └── README.md              # Door controller documentation
+├── RGBmermaidCROP.png         # App background image
+├── README.md                  # This file
+└── .gitignore                # Excludes build artifacts
+```
+
+---
+
+## Integration Details
+
+### AID Configuration
+- **Standard AID**: `"A0000001020304"` (configured in both Android app and Python code)
+- **Registration**: Android app registers for this AID in `apduservice.xml`
+- **Communication**: Python code sends SELECT AID APDU with this value
+
+### UID Format Consistency
+- **Android App**: Stores normal UID, displays Python-style UID (first 4 bytes reversed)
+- **Python Controller**: Expects Python-style UID for authentication
+- **Physical Cards**: Hardware UID used directly (no reversal needed)
+
+### Security Features
+- **Dual Authentication**: Supports both card types seamlessly
+- **PIN Protection**: Optional PIN requirement for enhanced security
+- **UID Validation**: Hex-only UID input with length validation
+- **Error Handling**: Graceful handling of communication failures
 
 ---
 
 ## Development Notes
-- The Android app and Python controller are now fully compatible for UID handling.
-- All UID logic is consistent: always store normal UID, always display Python-style UID.
-- The repository is flat (no submodules), so all code is tracked in one place.
+
+- **Repository Structure**: Flat repository (no submodules) for easy management
+- **Build System**: Android app uses Gradle with Android 12 SDK
+- **NFC Standards**: Implements ISO14443-4 (HCE) and ISO14443-3A (physical cards)
+- **Cross-Platform**: Python controller runs on Raspberry Pi or similar hardware
 
 ---
 
