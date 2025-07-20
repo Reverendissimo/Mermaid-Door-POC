@@ -10,6 +10,7 @@ A Host Card Emulation (HCE) Android app that emulates an NFC card for door acces
 - **Modern UI**: Responsive design with custom background and intuitive controls
 - **Debug Output**: Real-time feedback for NFC operations
 - **NFC Permission Handling**: Proper permission checks and user guidance
+- **Toast on Scan**: When the phone is scanned by an NFC reader (HCE service), a Toast message appears: "Phone scanned by NFC reader!"
 
 ## How It Works
 
@@ -18,6 +19,7 @@ The app uses Android's Host Card Emulation (HCE) feature to emulate an NFC card:
 - **Registration**: App registers for AID `"A0000001020304"` in the system
 - **Background Service**: HCE service runs in background (no app launch required)
 - **APDU Response**: When reader sends SELECT AID command, app responds with user's UID
+- **Toast Feedback**: When the HCE service is triggered (phone is scanned), a Toast appears on the phone
 - **Security**: Screen must be on (Android security policy), but device can be locked
 
 ### UID Handling
@@ -65,6 +67,7 @@ Then download from: `http://your-server-ip:8000/app-debug.apk`
 2. **Register with Door Controller**: Add this UID to your door controller's authorized list
 3. **Present Phone**: Hold your phone to the door controller's NFC reader
 4. **Authentication**: The door controller will receive your app's UID and authenticate
+5. **Toast Feedback**: When the phone is scanned, you will see a Toast: "Phone scanned by NFC reader!"
 
 ## Technical Details
 
