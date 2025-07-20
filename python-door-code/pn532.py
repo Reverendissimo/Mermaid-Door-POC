@@ -273,3 +273,42 @@ class PN532Uart(object):
         if self.debug:
             print("Release Targets")
         response = self.call_function(_COMMAND_INRELEASE, params=[0x00])
+
+    def read_hce_uid(self, aid_hex):
+        """
+        Try to communicate with a Type 4A (Android HCE) tag by sending a SELECT AID APDU.
+        Returns the UID string from the app, or None if not present.
+        """
+        # Enable RF
+        self.call_function(_COMMAND_RFCONFIGURATION, params=[0x01, 0x03])
+        if self.debug:
+            print("Sending INIT_PASSIVE_TARGET for HCE")
+        try:
+            response = self.call_function(_COMMAND_INLISTPASSIVETARGET, params=[0x01, _MIFARE_ISO14443A])
+        except PN532Error:
+            return None
+        if response[0] == 0x00:
+            return None
+        # Type 4A tag (Android HCE) will have SENS_RES = 0x44 0x00 and SEL_RES = 0x20
+        # See NFC Forum Digital Protocol spec for details
+        # We assume any card here could be HCE, so try APDU
+        # Send SELECT AID APDU: 00 A4 04 00 <len> <AID>
+        aid_bytes = bytearray.fromhex(aid_hex)
+        apdu = bytearray([0x00, 0xA4, 0x04, 0x00, len(aid_bytes)]) + aid_bytes
+        # InDataExchange command: 0x40, 0x01 (target 1), then APDU
+        params = [0x40, 0x01] + list(apdu)
+        try:
+            apdu_response = self.call_function(0x40, params)
+        except PN532Error:
+            return None
+        # The response should be the UID string (hex) from the app, possibly with status word 0x9000 at the end
+        if not apdu_response:
+            return None
+        # Remove trailing status word if present (0x90 0x00)
+        if len(apdu_response) >= 2 and apdu_response[-2:] == b'\x90\x00':
+            apdu_response = apdu_response[:-2]
+        # Return as string
+        try:
+            return apdu_response.decode('ascii')
+        except Exception:
+            return apdu_response.hex()

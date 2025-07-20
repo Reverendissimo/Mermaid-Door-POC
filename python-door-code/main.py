@@ -179,8 +179,26 @@ def generate_hash(card_uid, pin):
 
 async def handle_auth(nfc, keypad, door, net):
     while True:
-        card_uid = await nfc.wait_uid()
-        print("Card UUID: " + ''.join('{:02x}'.format(x) for x in card_uid))
+        card_info = await nfc.wait_uid()
+        if isinstance(card_info, tuple):
+            card_type, card_uid = card_info
+        else:
+            card_type, card_uid = "mifare", card_info
+
+        if card_type == "mifare":
+            uid_hex = ''.join('{:02x}'.format(x) for x in card_uid)
+            print("Card UUID (Mifare): " + uid_hex)
+            used_uid = card_uid
+        elif card_type == "android":
+            print("Card UUID (Android app): " + str(card_uid))
+            # Convert to bytes for hashing if needed
+            try:
+                used_uid = bytes.fromhex(card_uid)
+            except Exception:
+                used_uid = card_uid.encode() if isinstance(card_uid, str) else card_uid
+        else:
+            print("Unknown card type")
+            continue
 
         pin = await keypad.get_pin()
         keypad.write(keypad.CMD_RESET)
@@ -192,7 +210,7 @@ async def handle_auth(nfc, keypad, door, net):
             keypad.write(keypad.CMD_RESET)
             continue
 
-        hash = generate_hash(card_uid, pin)
+        hash = generate_hash(used_uid, pin)
         print(f'Card hash: {hash}')
 
         hash_found = False
@@ -250,19 +268,27 @@ class Nfc:
             print('No NFC reader (PN532) detected')
             raise
 
+        # Set your AID here (must match the Android app)
+        ANDROID_AID = "F222222222"  # Example, replace with your app's AID (hex string, no spaces)
+
         while True:
             uid = None
             try:
+                # Try standard card first
                 uid = rf.read_passive_target()
+                if uid is not None:
+                    self._uids.append(("mifare", uid))
+                    self._flag.set()
+                else:
+                    # Try Android HCE
+                    hce_uid = rf.read_hce_uid(AID=ANDROID_AID)
+                    if hce_uid:
+                        self._uids.append(("android", hce_uid))
+                        self._flag.set()
             except PN532Error as e:
                 print('PN532:', e)
 
             rf.power_down()
-
-            if uid is not None:
-                self._uids.append(uid)
-                self._flag.set()
-
             await asyncio.sleep(0.25)
 
 
