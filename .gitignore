@@ -1,0 +1,80 @@
+# Android/Java
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.ap_*
+*.dex
+*.class
+*.log
+*.keystore
+*.jks
+*.bak
+*.swp
+*.tmp
+*.orig
+*.pyc
+*.pyo
+*.pyd
+*.sublime-workspace
+*.sublime-project
+
+# Android Studio
+.idea/
+*.iws
+*.ipr
+*.iml
+
+# Build output
+**/build/
+**/out/
+**/gen/
+**/bin/
+**/obj/
+
+# Gradle
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# APKs
+*.apk
+*.ap_*
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Python
+*.pyc
+*.pyo
+__pycache__/
+
+# Misc
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.orig
+
+# Exclude user files
+*.user
+*.sublime-workspace
+*.sublime-project
+
+# Exclude output-metadata.json
+**/output-metadata.json
+
+# Exclude debug APKs
+**/app-debug.apk
+
+# Exclude other non-source files
+RGBmermaidCROP.png 
